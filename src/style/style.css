@@ -1,9 +1,11 @@
-.container {
+.search-form {
     background: linear-gradient(to right, blue, pink);
     display: flex;
     justify-content: center;
     height: 100px;
     align-items: center;
+    margin-bottom: 20px;
+    
 }
 
 body {
@@ -17,3 +19,40 @@ body {
 .photo-card {
     width: 300px;
 }
+
+.is-hidden {
+    display: none;
+  }
+
+  .container {
+   display: flex;
+   flex-direction: column;
+  }
+  .load-more {
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 20px;
+    background-color: blue;
+    color: azure;
+    padding: 10px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+  }
+  .end-collection-text {
+    text-align: center;
+  }
+  .btn {
+    margin-left: 10px;
+    
+    border: 1px solid white;
+    cursor: pointer;
+  }
+  .btn:hover {
+    box-shadow:  5px 5px 5px black;
+  }
+
+  .info {
+   font-size: 14px;
+   line-height: 8px;
+  }
