@@ -9,3 +9,11 @@
 body {
     margin: 0;
 }
+.gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.photo-card {
+    width: 300px;
+}
