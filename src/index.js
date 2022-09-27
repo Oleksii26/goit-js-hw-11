@@ -1,4 +1,5 @@
-import axios from 'axios';
+// import axios from 'axios';
+import fetchImages from './fetch-images'
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
 import SimpleLightbox from "simplelightbox";
 import "simplelightbox/dist/simple-lightbox.min.css";
@@ -22,19 +23,20 @@ let searchQuery = ''
 async function onSearch(e) {
     e.preventDefault();
     const searchQuery = e.currentTarget.searchQuery.value
-   
+    currentPage = 1
+
     if (searchQuery === '') {
         return;
     }
 
     const response = await fetchImages(searchQuery, currentPage)
     currentHits = response.hits.length
-
-    if (response.total.hits > 40) {
-        btnLoadMore.classList.add('is-hidden')
+    console.log(response.totalHits)
+    if (response.totalHits > 40) {
+        btnLoadMore.classList.remove('is-hidden')
     }
     else {
-        btnLoadMore.classList.remove('is-hidden')
+        btnLoadMore.classList.add('is-hidden')
     }
     try {
         if (response.totalHits > 0) {
@@ -55,30 +57,20 @@ async function onSearch(e) {
     catch (error) {
         console.log(error)
     }
-}
-
-async function loadMoreImg() {
    
-    const response = await fetchImages(searchQuery, currentPage)
-    renderCardImage(response.hits)
+}
+async function loadMoreImg() {
+    currentPage += 1
+
+    const res = await fetchImages(searchQuery, currentPage)
+    renderCardImage(res.hits)
     lightbox.refresh();
-    currentHits += response.hits.length
-    if (currentHits === response.totalHits) {
+    currentHits += res.hits.length
+    if (currentHits === res.totalHits) {
         btnLoadMore.classList.add('is-hidden')
         endCollectionText.classList.remove('is-hidden');
     }
-
 }
-
-
-async function fetchImages(value, page) {
-    const url = 'https://pixabay.com/api/'
-    const key = '30141749-fb2f341407d461fabdd51ea4f'
-    const filter = `?key=${key}&q=${value}&image_type=photo&orientation=horizontal&safesearch=true&page=${page}&per_page=40`
-    return await axios.get(`${url}${filter}`).then(response => response.data)
-}
-
-
 
 function renderCardImage(arr) {
     const markup = arr.map(({ largeImageURL, webformatURL, tags, likes, views, comments, downloads }) =>
@@ -106,8 +98,6 @@ function renderCardImage(arr) {
   </div>`).join('')
     seachContainer.insertAdjacentHTML('beforeend', markup)
 }
-
-
 
 const lightbox = new SimpleLightbox('.photo-card a', {
     captionsData: 'alt',
