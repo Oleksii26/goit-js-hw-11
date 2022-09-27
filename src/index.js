@@ -1,80 +1,77 @@
-// import axios from 'axios';
 import fetchImages from './fetch-images'
-import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import SimpleLightbox from "simplelightbox";
-import "simplelightbox/dist/simple-lightbox.min.css";
+import { Notify } from 'notiflix/build/notiflix-notify-aio'
+import SimpleLightbox from 'simplelightbox'
+import 'simplelightbox/dist/simple-lightbox.min.css'
 
 
 
 const searchForm = document.querySelector('.search-form')
-const seachContainer = document.querySelector('.gallery')
-const btnLoadMore = document.querySelector('.load-more')
-const endCollectionText = document.querySelector('.search-results')
-
-
-searchForm.addEventListener('submit', onSearch)
-btnLoadMore.addEventListener('click', loadMoreImg)
-
+const gallery = document.querySelector('.gallery')
+const loadMoreBtn = document.querySelector('.load-more')
+const endCollectionText = document.querySelector('.end-collection-text')
 
 let currentPage = 1
 let currentHits = 0
 let searchQuery = ''
 
-async function onSearch(e) {
-    e.preventDefault();
-    const searchQuery = e.currentTarget.searchQuery.value
-    currentPage = 1
+searchForm.addEventListener('submit', onSubmitSearchForm)
 
-    if (searchQuery === '') {
-        return;
+async function onSubmitSearchForm(e) {
+  e.preventDefault()
+  searchQuery = e.currentTarget.searchQuery.value
+  currentPage = 1
+
+  if (searchQuery === '') {
+    return
+  }
+
+  const response = await fetchImages(searchQuery, currentPage)
+  currentHits = response.hits.length
+
+  if (response.totalHits > 40) {
+    loadMoreBtn.classList.remove('is-hidden')
+  } else {
+    loadMoreBtn.classList.add('is-hidden')
+  }
+
+  try {
+    if (response.totalHits > 0) {
+      Notify.success(`We found ${response.totalHits} images.`)
+      gallery.innerHTML = ''
+      renderCardImage(response.hits)
+      lightbox.refresh()
+      endCollectionText.classList.add('is-hidden')
     }
 
-    const response = await fetchImages(searchQuery, currentPage)
-    currentHits = response.hits.length
-    console.log(response.totalHits)
-    if (response.totalHits > 40) {
-        btnLoadMore.classList.remove('is-hidden')
+    if (response.totalHits === 0) {
+      gallery.innerHTML = ''
+      Notify.failure('Sorry, search returned no results')
+      loadMoreBtn.classList.add('is-hidden')
+      endCollectionText.classList.add('is-hidden')
     }
-    else {
-        btnLoadMore.classList.add('is-hidden')
-    }
-    try {
-        if (response.totalHits > 0) {
-            Notify.success(`We found ${response.totalHits} images.`)
-            seachContainer.innerHTML = ''
-            renderCardImage(response.hits)
-            lightbox.refresh()
-            endCollectionText.classList.add('is-hidden')
-        }
-
-        if (response.totalHits === 0) {
-            seachContainer.innerHTML = ''
-            Notify.failure("Oops, search returned no results")
-            btnLoadMore.classList.add('is-hidden')
-            endCollectionText.classList.remove('is-hidden');
-        }
-    }
-    catch (error) {
-        console.log(error)
-    }
-   
+  } catch (error) {
+    console.log(error)
+  }
 }
-async function loadMoreImg() {
-    currentPage += 1
 
-    const res = await fetchImages(searchQuery, currentPage)
-    renderCardImage(res.hits)
-    lightbox.refresh();
-    currentHits += res.hits.length
-    if (currentHits === res.totalHits) {
-        btnLoadMore.classList.add('is-hidden')
-        endCollectionText.classList.remove('is-hidden');
-    }
+loadMoreBtn.addEventListener('click', onClickLoadMoreBtn)
+
+async function onClickLoadMoreBtn() {
+  currentPage += 1
+  const response = await fetchImages(searchQuery, currentPage)
+  renderCardImage(response.hits)
+  lightbox.refresh()
+  currentHits += response.hits.length
+
+  if (currentHits === response.totalHits) {
+    loadMoreBtn.classList.add('is-hidden')
+    endCollectionText.classList.remove('is-hidden')
+  }
 }
 
 function renderCardImage(arr) {
-    const markup = arr.map(({ largeImageURL, webformatURL, tags, likes, views, comments, downloads }) =>
-        `<div class="photo-card">
+  const markup = arr.map(({ largeImageURL, webformatURL, tags, likes, views, comments, downloads }) =>
+    `<div class="photo-card">
      <a href='${largeImageURL}'>
     <img src="${webformatURL}" alt="${tags}" loading="lazy" width='250' /></a>
     <div class="info">
@@ -96,19 +93,11 @@ function renderCardImage(arr) {
       </p>
     </div>
   </div>`).join('')
-    seachContainer.insertAdjacentHTML('beforeend', markup)
+  gallery.insertAdjacentHTML('beforeend', markup)
 }
 
 const lightbox = new SimpleLightbox('.photo-card a', {
-    captionsData: 'alt',
-    captionDelay: 250,
-    captionPosition: 'bottom',
-});
-
-
-
-
-
-
-
-
+  captionsData: 'alt',
+  captionDelay: 250,
+  captionPosition: 'bottom',
+})
